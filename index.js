@@ -3,6 +3,8 @@ const browserSync = require('browser-sync');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+console.log('teesting123')
+
 // Serve static files from the "public" directory
 app.use(express.static('public'));
 
