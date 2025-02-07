@@ -14,19 +14,19 @@ app.get('/', (req, res) => {
 });
 
 app.get('/anna', (req, res) => {
-  res.sendFile(__dirname + '/public/anna.html');
+  res.sendFile(__dirname + '/public/anna');
 });
 
 app.get('/christine', (req, res) => {
-  res.sendFile(__dirname + '/public/christine.html');
+  res.sendFile(__dirname + '/public/christine');
 });
 
 app.get('/nick', (req, res) => {
-  res.sendFile(__dirname + '/public/nick.html');
+  res.sendFile(__dirname + '/public/nick');
 });
 
 app.get('/rich', (req, res) => {
-  res.sendFile(__dirname + '/public/rich.html');
+  res.sendFile(__dirname + '/public/rich');
 });
 
 // Start the server
