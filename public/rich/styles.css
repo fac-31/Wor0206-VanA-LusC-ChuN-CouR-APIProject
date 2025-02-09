@@ -1,0 +1,19 @@
+body {
+  font-family: 'Roboto mono', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+.loading-info {
+  margin-top: 1rem;
+}
+
+.hidden {
+    display: none;
+}
