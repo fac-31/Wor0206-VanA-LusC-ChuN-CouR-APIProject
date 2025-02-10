@@ -1,8 +1,9 @@
-const express = require('express');
-const browserSync = require('browser-sync');
+const express = require("express");
+const browserSync = require("browser-sync");
 const app = express();
 const axios = require("axios");
 const cors = require("cors");
+const { OpenAI } = require("openai");
 require("dotenv").config();
 
 const PORT = process.env.PORT || 3001;
@@ -14,9 +15,14 @@ app.use(express.json());
 app.use(cors()); 
 
 
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+console.log(process.env.OPENAI_API_KEY);
+
 // Define a route for the home page
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/public/index.html");
 });
 
 // Serve specific HTML files
@@ -34,6 +40,37 @@ app.get('/nick', (req, res) => {
 
 app.get('/rich', (req, res) => {
   res.sendFile(__dirname + '/public/rich.html');
+});
+
+//NC - Image generation
+
+app.post("/generate-image", async (req, res) => {
+  const { pokemonName, filteredBreeds } = req.body;
+  const prompt = `If a '${pokemonName}' and a '${filteredBreeds}' have a battle, generate a vs poster image. Make sure there is no text on the image.`;
+
+  try {
+    const response = await openai.images.generate({
+      model: "dall-e-3",
+      prompt: prompt,
+      n: 1,
+      size: "1024x1024",
+    });
+
+    res.json({ imageUrl: response.data[0].url });
+  } catch (error) {
+    console.error("Error generating image:", error);
+    res.status(500).json({ error: "Error generating image" });
+  }
+});
+
+app.get("/rich", (req, res) => {
+  res.sendFile(__dirname + "/public/rich");
+});
+
+const key = process.env.OPENAI_KEY;
+
+app.get("/api/key", (req, res) => {
+  res.json(key);
 });
 
 // Anna: API A - Route to fetch meal data
@@ -58,7 +95,7 @@ app.get("/api/meal", async (req, res) => {
       // Setting up API call to Spoonacular
        if (!process.env.SPOONACULAR_API_KEY) {
           return res.status(500).json({ error: "Missing Spoonacular API key" });
-      }
+       }
       console.log(`starting spoonacular block`)
       const spoonacularUrl = `https://api.spoonacular.com/recipes/complexSearch?query=${encodeURIComponent(category)}&apiKey=${process.env.SPOONACULAR_API_KEY}`;
       const spoonacularResponse = await axios.get(spoonacularUrl);
@@ -98,6 +135,7 @@ app.get("/api/meal", async (req, res) => {
       }];
 
       console.log(`tools defined`)
+      console.log("API Key:", process.env.OPENAI_API_KEY);
 
       const response = await axios.post(`https://api.openai.com/v1/chat/completions`,
       {
@@ -116,13 +154,65 @@ app.get("/api/meal", async (req, res) => {
           'Content-Type': 'application/json'
         }
       });
+
       console.log(`open-ai response received`)
+
       res.json({ mealName: category, imageUrl, response: response.data });
+      
   } catch (error) {
       console.error("Server error:", error);
+      if (error.response && error.response.status === 429) {
+        console.warn("⚠️ Rate limit exceeded! Retrying after delay...");
+        await delay(3000); // Wait for 3 seconds before retrying
+        return fetchRecipe(category); // Recursive retry
+      }
       if (!res.headersSent) {
           res.status(500).json({ error: "Internal server error" });
       }
+  }
+});
+
+
+app.get("/api/openai", async (req, res) => {
+  // Dall-e API
+  const name = req.query.name;
+  const age = req.query.age;
+  const getImageBasedOnAgeAndName = async (name, age) => {
+    const OPENAI_URL = "https://api.openai.com/v1/images/generations";
+    const OPENAI_KEY = process.env.OPENAI_KEY;
+    const prompt = `a photo-realistic person who is ${age} years old called ${name}`;
+
+    console.log("the prompt: ", prompt);
+    try {
+      // Call OpenAI API
+      const response = await axios.post(
+        OPENAI_URL,
+        {
+          model: "dall-e-3",
+          prompt: prompt,
+          n: 1,
+          size: "1024x1024",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${OPENAI_KEY}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const imageUrl = response.data.data[0].url;
+      return imageUrl;
+    } catch (error) {
+      console.error("Error fetching image from OpenAI:", error);
+      throw new Error("Error fetching image");
+    }
+  };
+
+  try {
+    const imageUrl = await getImageBasedOnAgeAndName(name, age);
+    res.json({ imageUrl });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to generate image" });
   }
 });
 
@@ -131,11 +221,9 @@ app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-// Initialize BrowserSync (only for development)
-if (process.env.NODE_ENV !== 'production') {
-  browserSync.init({
-    proxy: `http://localhost:${PORT}`,
-    files: ['public/**/*.*'], // Watch for changes in the 'public' folder
-    reloadDelay: 50,
-  });
-}
+// Initialize BrowserSync
+browserSync.init({
+  proxy: `http://localhost:${PORT}`,
+  files: ["public/**/*.*"], // Watch for changes in the 'public' folder
+  reloadDelay: 50,
+});
