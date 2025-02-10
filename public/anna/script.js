@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
         failedImageElement.innerText = "";
         recipeElement.innerHTML = ""; // Clear previous recipe
 
-        let url = `http://localhost:3000/api/meal?name=${encodeURIComponent(name)}`;
+        let url = `http://localhost:3001/api/meal?name=${encodeURIComponent(name)}`;
         console.log("Fetching meal from:", url);
         fetch(url)
             .then(response => {
@@ -62,11 +62,24 @@ document.addEventListener("DOMContentLoaded", function () {
                 // ✅ Check if OpenAI response exists before trying to use it
                 let recipeText = null;
                 if (data.response && data.response.choices && data.response.choices.length > 0 && data.response.choices[0].message) {
-                    recipeText = data.response.choices[0].message.content;
-                }
+                    recipeText = JSON.parse(data.response.choices[0].message.tool_calls[0].function.arguments);
+                    console.log(recipeText.name);          // "Chicken Handi"
+                    console.log(recipeText.ingredients);   // Array of ingredients
+                    console.log(recipeText.instructions);  // Array of instructions
+                    console.log(recipeText.cooking_time);  // "45 minutes"
+                    console.log(recipeText.servings);      // servings
+                    
+                    const formattedInstructions = recipeText.instructions.map(step => `<li>${step}</li>`).join("");
 
-                if (recipeText) {
-                    recipeElement.innerHTML = `<h3>Recipe:</h3><p>${recipeText.replace(/\n/g, "<br>")}</p>`;
+                    recipeElement.innerHTML = `
+                        <h3>Recipe: ${recipeText.name}</h3>
+                        <h4>Ingredients:</h4>
+                        <ul>${recipeText.ingredients.map(ing => `<li>${ing}</li>`).join("")}</ul>
+                        <h4>Instructions:</h4>
+                        <ol>${formattedInstructions}</ol>
+                        <p><strong>Cooking Time:</strong> ${recipeText.cooking_time}</p>
+                        <p><strong>Servings:</strong> ${recipeText.servings}</p>
+                    `;
                 } else {
                     recipeElement.innerHTML = "<p>No recipe found.</p>";
                 }

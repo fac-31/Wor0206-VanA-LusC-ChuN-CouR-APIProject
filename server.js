@@ -5,7 +5,7 @@ const axios = require("axios");
 const cors = require("cors");
 require("dotenv").config();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 console.log('Testing server...');
 
@@ -56,10 +56,10 @@ app.get("/api/meal", async (req, res) => {
       console.log("Meal found:", category);
 
       // Setting up API call to Spoonacular
-      if (!process.env.SPOONACULAR_API_KEY) {
+       if (!process.env.SPOONACULAR_API_KEY) {
           return res.status(500).json({ error: "Missing Spoonacular API key" });
       }
-
+      console.log(`starting spoonacular block`)
       const spoonacularUrl = `https://api.spoonacular.com/recipes/complexSearch?query=${encodeURIComponent(category)}&apiKey=${process.env.SPOONACULAR_API_KEY}`;
       const spoonacularResponse = await axios.get(spoonacularUrl);
 
@@ -86,7 +86,9 @@ app.get("/api/meal", async (req, res) => {
         required: ["name", "ingredients", "instructions", "cooking_time", "servings"]
       };
 
-      tools[{
+      console.log(`recipe schema defined`)
+
+      const tools = [{
         type: "function",
           function: {
             name: "generateRecipe",
@@ -95,23 +97,26 @@ app.get("/api/meal", async (req, res) => {
         } 
       }];
 
+      console.log(`tools defined`)
+
       const response = await axios.post(`https://api.openai.com/v1/chat/completions`,
       {
-        model: `gpt-4o-turbo`,
+        model: `gpt-4o`,
         messages: [
           { role: 'system', content: "You are a professional private chef." },
           { role: 'user', content: `Create a recipe for this meal: ${category}` }
         ],
-       tools: tools,
+        tools:tools,
+        tool_choice: "generateRecipe",
         temperature: 0.7
       },
       {
         headers: {
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${process.env.OPENAI_KEY}`,
           'Content-Type': 'application/json'
         }
       });
-      
+      console.log(`open-ai response received`)
       res.json({ mealName: category, imageUrl, response: response.data });
   } catch (error) {
       console.error("Server error:", error);
