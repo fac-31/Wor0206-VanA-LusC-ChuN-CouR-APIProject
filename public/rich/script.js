@@ -14,38 +14,6 @@ const getAgeBasedOnName = async (name) => {
   }
 };
 
-// Dall-e API
-const getImageBasedOnAgeAndName = async (age, name) => {
-  const OPENAI_URL = 'https://api.openai.com/v1/images/generations';
-  const OPENAI_KEY = 'open ai key go here';
-  const prompt = `a photo-realistic person who is ${age} years old called ${name}`;
-
-  try {
-    document.getElementById('gettingImage').style.display = 'block'; // Un-hide loading info
-    const response = await fetch(OPENAI_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${OPENAI_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'dall-e-3',
-        prompt: prompt,
-        n: 1, // Number of images
-        size: '1024x1024',
-      }),
-    });
-    const imageData = await response.json();
-    const imageUrl = imageData.data[0].url;
-    console.log(imageUrl);
-    const aiImage = document.getElementById('aiImage');
-    aiImage.src = imageUrl;
-    aiImage.alt = 'dall-e generated image of a person';
-  } catch (error) {
-    console.error(error);
-  }
-};
-
 // Form submit button
 document
   .getElementById('nameForm')
@@ -53,6 +21,18 @@ document
     event.preventDefault();
     const name = document.getElementById('name').value;
     const prediction = await getAgeBasedOnName(name);
-    const image = getImageBasedOnAgeAndName(prediction.age, prediction.name);
-    console.log(image);
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/openai?name=${prediction.name}&age=${prediction.age}`
+      );
+      const data = await response.json();
+      const imageUrl = data.imageUrl;
+
+      const aiImage = document.getElementById('aiImage');
+      aiImage.src = imageUrl;
+      aiImage.alt = 'DALL-E generated image of a person';
+    } catch (error) {
+      console.error('Error fetching AI image:', error);
+    }
   });
