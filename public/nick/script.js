@@ -11,7 +11,7 @@ async function fetchPokemonAbility() {
                 const firstAbility = data.abilities[0].ability.name;
                 console.log(data.abilities); 
 
-                const firstLetter = firstAbility.charAt(0).toUpperCase();
+                const firstLetter = firstAbility.charAt(0);
                 console.log(firstLetter)
 
                 document.getElementById('result').textContent = ` ${pokemonName} uses ${firstAbility}!`;
@@ -37,7 +37,8 @@ async function fetchDogBreed(firstLetter) {
 
         const data = await response.json();
         const breeds = Object.keys(data.message); 
-        const filteredBreeds = breeds.filter(breed => breed.charAt(0).toLowerCase() === firstLetter.toLowerCase());
+        const filteredBreeds = breeds.filter(breed => breed.charAt(0) === firstLetter);
+        console.log(filteredBreeds);
 
 
         if (filteredBreeds.length > 0) {
