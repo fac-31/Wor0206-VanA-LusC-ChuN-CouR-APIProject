@@ -5,6 +5,9 @@ const axios = require("axios");
 const cors = require("cors");
 require("dotenv").config();
 
+const { OpenAI } = require('openai');
+
+
 const PORT = process.env.PORT || 3000;
 
 console.log('teesting123')
@@ -13,6 +16,13 @@ console.log('teesting123')
 app.use(express.static('public'));
 app.use(express.json());
 app.use(cors()); // allows frontend requests
+
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY, 
+});
+console.log(process.env.OPENAI_API_KEY);
+
 
 // Define a route for the home page
 app.get('/', (req, res) => {
@@ -29,13 +39,31 @@ app.get('/christine', (req, res) => {
 
 app.get('/nick', (req, res) => {
   res.sendFile(__dirname + '/public/nick');
+
+//NC - Image generation 
+
+app.post('/generate-image', async (req, res) => {
+  const { pokemonName, filteredBreeds } = req.body;
+  const prompt = `If a '${pokemonName}' and a '${filteredBreeds}' have a battle, generate a vs poster image. Make sure there is no text on the image.`;
+
+  try {
+      const response = await openai.images.generate({
+          model: "dall-e-3",
+          prompt: prompt,
+          n: 1,
+          size: "720x720",
+      });
+
+      res.json({ imageUrl: response.data[0].url });
+  } catch (error) {
+      console.error('Error generating image:', error);
+      res.status(500).json({ error: 'Error generating image' });
+  }
 });
 
 app.get('/rich', (req, res) => {
   res.sendFile(__dirname + '/public/rich');
 });
-
-
 
 // Anna: API A - Route to fetch meal data
 app.get("/api/meal", async (req, res) => {
