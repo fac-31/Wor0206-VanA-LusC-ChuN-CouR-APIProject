@@ -9,10 +9,10 @@ const PORT = process.env.PORT || 3000;
 
 console.log('Testing server...');
 
-// Serve static files from the "public" directory
 app.use(express.static('public'));
 app.use(express.json());
-app.use(cors()); // Allows frontend requests
+app.use(cors()); 
+
 
 // Define a route for the home page
 app.get('/', (req, res) => {
@@ -38,41 +38,85 @@ app.get('/rich', (req, res) => {
 
 // Anna: API A - Route to fetch meal data
 app.get("/api/meal", async (req, res) => {
-    try {
-        const mealName = req.query.name;
-        if (!mealName) {
-            return res.status(400).json({ error: "Meal name is required" });
+  try {
+      const mealName = req.query.name;
+      if (!mealName) {
+          return res.status(400).json({ error: "Meal name is required" });
+      }
+
+      const themealdbUrl = `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(mealName)}`;
+      const themealdbResponse = await axios.get(themealdbUrl);
+
+      if (!themealdbResponse.data.meals || themealdbResponse.data.meals.length === 0) {
+          return res.status(404).json({ error: "Meal not found" });
+      }
+
+      const category = themealdbResponse.data.meals[0].strMeal;
+      console.log("Meal found:", category);
+
+      // Setting up API call to Spoonacular
+      if (!process.env.SPOONACULAR_API_KEY) {
+          return res.status(500).json({ error: "Missing Spoonacular API key" });
+      }
+
+      const spoonacularUrl = `https://api.spoonacular.com/recipes/complexSearch?query=${encodeURIComponent(category)}&apiKey=${process.env.SPOONACULAR_API_KEY}`;
+      const spoonacularResponse = await axios.get(spoonacularUrl);
+
+      const imageUrl = spoonacularResponse.data.results?.length > 0 ? spoonacularResponse.data.results[0].image : null;
+
+      // Setting up Open AI 
+      const recipeSchema = {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "The name of the recipe" },
+          ingredients: { 
+            type: "array", 
+            items: { type: "string" }, 
+            description: "A list of ingredients required for the recipe" 
+          },
+          instructions: { 
+            type: "array", 
+            items: { type: "string" }, 
+            description: "Step-by-step cooking instructions" 
+          },
+          cooking_time: { type: "string", description: "Estimated cooking time" },
+          servings: { type: "integer", description: "Number of servings" }
+        },
+        required: ["name", "ingredients", "instructions", "cooking_time", "servings"]
+      };
+
+      const response = await axios.post(`https://api.openai.com/v1/chat/completions`,
+      {
+        model: `gpt-4o`,
+        messages: [
+          { role: 'system', content: "You are a professional private chef." },
+          { role: 'user', content: `Create a recipe for this meal: ${category}` }
+        ],
+        tools: [{
+          type: "function",
+          function: {
+            name: "generateRecipe",
+            description: "Generates a detailed recipe for a given meal",
+            parameters: recipeSchema
+          }
+        }],  
+        tool_choice: "auto",
+        temperature: 0.7
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
         }
+      });
 
-        // Fix template string issue
-        const themealdbUrl = `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(mealName)}`;
-        const themealdbResponse = await axios.get(themealdbUrl);
-
-        if (!themealdbResponse.data.meals || themealdbResponse.data.meals.length === 0) {
-            return res.status(404).json({ error: "Meal not found" });
-        }
-
-        const category = themealdbResponse.data.meals[0].strMeal;
-        console.log("Meal found:", category);
-
-        // Ensure API key is provided
-        if (!process.env.SPOONACULAR_API_KEY) {
-            return res.status(500).json({ error: "Missing Spoonacular API key" });
-        }
-
-        // Fix template string issue
-        const spoonacularUrl = `https://api.spoonacular.com/recipes/complexSearch?query=${encodeURIComponent(category)}&apiKey=${process.env.SPOONACULAR_API_KEY}`;
-        const spoonacularResponse = await axios.get(spoonacularUrl);
-
-        // Ensure spoonacularResponse.data.results exists
-        const imageUrl = spoonacularResponse.data.results?.length > 0 ? spoonacularResponse.data.results[0].image : null;
-
-        res.json({ mealName: category, imageUrl });
-
-    } catch (error) {
-        console.error("Server error:", error);
-        res.status(500).json({ error: "Internal server error" });
-    }
+      res.json({ mealName: category, imageUrl, response: response.data });
+  } catch (error) {
+      console.error("Server error:", error);
+      if (!res.headersSent) {
+          res.status(500).json({ error: "Internal server error" });
+      }
+  }
 });
 
 // Start the server
