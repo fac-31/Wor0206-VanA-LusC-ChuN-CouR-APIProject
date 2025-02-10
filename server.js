@@ -61,7 +61,7 @@ app.get("/rich", (req, res) => {
   res.sendFile(__dirname + "/public/rich");
 });
 
-const key = process.env.RICH_API_KEY;
+const key = process.env.OPENAI_KEY;
 
 app.get("/api/key", (req, res) => {
   res.json(key);
