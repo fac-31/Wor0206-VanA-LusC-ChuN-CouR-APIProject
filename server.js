@@ -39,6 +39,7 @@ app.get('/rich', (req, res) => {
 // Anna: API A - Route to fetch meal data
 app.get("/api/meal", async (req, res) => {
   try {
+    console.log(`starting try block`)
       const mealName = req.query.name;
       if (!mealName) {
           return res.status(400).json({ error: "Meal name is required" });
@@ -62,7 +63,7 @@ app.get("/api/meal", async (req, res) => {
       const spoonacularUrl = `https://api.spoonacular.com/recipes/complexSearch?query=${encodeURIComponent(category)}&apiKey=${process.env.SPOONACULAR_API_KEY}`;
       const spoonacularResponse = await axios.get(spoonacularUrl);
 
-      const imageUrl = spoonacularResponse.data.results?.length > 0 ? spoonacularResponse.data.results[0].image : null;
+      const imageUrl = spoonacularResponse.data.results?.length > 0 ? spoonacularResponse.data.results[0].image : null; 
 
       // Setting up Open AI 
       const recipeSchema = {
@@ -85,22 +86,23 @@ app.get("/api/meal", async (req, res) => {
         required: ["name", "ingredients", "instructions", "cooking_time", "servings"]
       };
 
-      const response = await axios.post(`https://api.openai.com/v1/chat/completions`,
-      {
-        model: `gpt-4o`,
-        messages: [
-          { role: 'system', content: "You are a professional private chef." },
-          { role: 'user', content: `Create a recipe for this meal: ${category}` }
-        ],
-        tools: [{
-          type: "function",
+      tools[{
+        type: "function",
           function: {
             name: "generateRecipe",
             description: "Generates a detailed recipe for a given meal",
             parameters: recipeSchema
-          }
-        }],  
-        tool_choice: "auto",
+        } 
+      }];
+
+      const response = await axios.post(`https://api.openai.com/v1/chat/completions`,
+      {
+        model: `gpt-4o-turbo`,
+        messages: [
+          { role: 'system', content: "You are a professional private chef." },
+          { role: 'user', content: `Create a recipe for this meal: ${category}` }
+        ],
+       tools: tools,
         temperature: 0.7
       },
       {
@@ -109,7 +111,7 @@ app.get("/api/meal", async (req, res) => {
           'Content-Type': 'application/json'
         }
       });
-
+      
       res.json({ mealName: category, imageUrl, response: response.data });
   } catch (error) {
       console.error("Server error:", error);
