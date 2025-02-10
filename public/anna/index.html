@@ -1,24 +1,32 @@
 <!DOCTYPE html>
-<html lang = "en">
+<html lang="en">
 <head>
-    <meta charset = "UTF-8">
-    <meta name = "viewport" content = "width=device-width, initial-scale=1.0">
-    <title>Hey there!</title>
-    <link rel = "stylesheet" href = "style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Your Recipes!</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <h1>Get your recipes here!</h1>
-    <img src ="main-image.png">
-    <form id ="contactForm">
-        <label for="name">Search for a meal:</label>
-        <input type="text" id="name" name="name" required><br><br>
-        <button type="button" id="submit">Submit</button>
-    </form>
+    <div class="container">
+        <h1>Get Your Recipes Here!</h1>
+        <img src="main-image.png" alt="Food Banner" class="banner">
 
-    <h2 id="meal-name"></h2> 
-    <h3 id="failed-meal"></h3>
-    <img id="meal-image" src="" alt="Meal Image" style="display: none; width: 300px; height: auto;">
-    <h3 id ="failed-image"></h3>
+        <form id="contactForm">
+            <label for="name">Search for a meal:</label>
+            <input type="text" id="name" name="name" placeholder="e.g., Pasta, Chicken" required>
+            <button type="button" id="submit">Search</button>
+        </form>
+
+        <div id="result">
+            <h2 id="meal-name"></h2> 
+            <h3 id="failed-meal"></h3>
+            <img id="meal-image" src="" alt="Meal Image">
+            <h3 id="failed-image"></h3>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
-<script src = "script.js"></script>
+</html>
