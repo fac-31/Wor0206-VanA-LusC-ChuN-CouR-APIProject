@@ -4,6 +4,9 @@ const numberFact = document.getElementById("number-fact-paragraph");
 const jokeParagraph = document.getElementById("joke-paragraph");
 
 document.getElementById("name-form").addEventListener("submit", () => {
+  predictedAge.innerText = "";
+  numberFact.innerText = "";
+  jokeParagraph.innerText = "";
   console.log(firstName.value);
   getAge(firstName.value);
 });
@@ -36,30 +39,37 @@ async function getNumberFact(num) {
 }
 
 async function getJokeBasedOnNumberFact(fact) {
-  const apiKey = "api key here";
-  try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages: [
+  fetch("http://localhost:3000/api/key")
+    .then((response) => response.json())
+    .then(async (data) => {
+      try {
+        const response = await fetch(
+          "https://api.openai.com/v1/chat/completions",
           {
-            role: "user",
-            content: `Tell me a joke based on the following fact: ${fact}`,
-          },
-        ],
-      }),
-    });
-    const data = await response.json();
-    jokeParagraph.innerText = `${data.choices[0].message.content}`;
-    jokeParagraph.classList.remove("hidden");
-  } catch (error) {
-    console.error("Third API call failed:", error);
-  }
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${data}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "gpt-4o",
+              messages: [
+                {
+                  role: "user",
+                  content: `Tell me a joke based on the following fact: ${fact}`,
+                },
+              ],
+            }),
+          }
+        );
+        const joke = await response.json();
+        jokeParagraph.innerText = `${joke.choices[0].message.content}`;
+        jokeParagraph.classList.remove("hidden");
+      } catch (error) {
+        console.error("Third API call failed:", error);
+      }
+    })
+    .catch((error) => console.error("Error fetching data:", error));
 }
 
 const capitaliseFirstLetter = (string) => {
