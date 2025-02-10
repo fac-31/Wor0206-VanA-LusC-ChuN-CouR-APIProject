@@ -1,0 +1,25 @@
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: black;
+}
+
+h2 {
+  color: grey;
+  font-size: 50px;
+  font-family: "Press Start 2P", cursive;
+}
+
+h3 {
+  color: beige;
+  font-size: 35px;
+  font-family: "Press Start 2P", cursive;
+}
+
+h4 {
+  color: red;
+  font-size: 40px;
+  font-family: "Press Start 2P", cursive;
+}
