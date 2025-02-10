@@ -5,11 +5,11 @@ body {
   font-size: 35px;
 }
 
-#name-to-fact-converter {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+#name-to-joke-converter {
+  margin: auto;
+  margin-top: 120px;
+  margin-bottom: 120px;
+  width: 50%;
   background-color: #bbbbbb;
   padding: 40px;
   border-radius: 40px;

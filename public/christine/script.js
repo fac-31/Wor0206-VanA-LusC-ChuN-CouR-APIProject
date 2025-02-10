@@ -1,7 +1,7 @@
 const firstName = document.getElementById("first-name");
 const predictedAge = document.getElementById("predicted-age-paragraph");
 const numberFact = document.getElementById("number-fact-paragraph");
-const nameGuess = document.getElementById("name-guess-paragraph");
+const jokeParagraph = document.getElementById("joke-paragraph");
 
 document.getElementById("name-form").addEventListener("submit", () => {
   console.log(firstName.value);
@@ -29,13 +29,14 @@ async function getNumberFact(num) {
     numberFact.innerText = `Fun fact! ${data}`;
     numberFact.classList.remove("hidden");
     console.log(data);
+    getJokeBasedOnNumberFact(data);
   } catch (error) {
     console.error("Second API call failed:", error);
   }
 }
 
-async function getNameBasedOnNumberFact(fact) {
-  const apiKey = "api key here!";
+async function getJokeBasedOnNumberFact(fact) {
+  const apiKey = "api key here";
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -48,15 +49,14 @@ async function getNameBasedOnNumberFact(fact) {
         messages: [
           {
             role: "user",
-            content: `Guess my name based on the following fact about my age: ${fact}`,
+            content: `Tell me a joke based on the following fact: ${fact}`,
           },
         ],
       }),
     });
-    console.log(response.json());
     const data = await response.json();
-    nameGuess.innerText = `${data}`;
-    nameGuess.classList.remove("hidden");
+    jokeParagraph.innerText = `${data.choices[0].message.content}`;
+    jokeParagraph.classList.remove("hidden");
   } catch (error) {
     console.error("Third API call failed:", error);
   }
