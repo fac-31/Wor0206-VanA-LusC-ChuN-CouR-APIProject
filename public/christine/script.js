@@ -36,26 +36,30 @@ async function getNumberFact(num) {
 
 async function getNameBasedOnNumberFact(fact) {
   const apiKey = "api key here!";
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "user",
-          content: `Guess my name based on the following fact about my age: ${fact}`,
-        },
-      ],
-    }),
-  });
-  console.log(response.json());
-  const data = await response.json();
-  nameGuess.innerText = `${data}`;
-  nameGuess.classList.remove("hidden");
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "user",
+            content: `Guess my name based on the following fact about my age: ${fact}`,
+          },
+        ],
+      }),
+    });
+    console.log(response.json());
+    const data = await response.json();
+    nameGuess.innerText = `${data}`;
+    nameGuess.classList.remove("hidden");
+  } catch (error) {
+    console.error("Third API call failed:", error);
+  }
 }
 
 const capitaliseFirstLetter = (string) => {
