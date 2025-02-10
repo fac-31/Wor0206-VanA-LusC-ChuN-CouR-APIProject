@@ -9,8 +9,6 @@ const { OpenAI } = require("openai");
 
 const PORT = process.env.PORT || 3000;
 
-console.log("teesting123");
-
 // Serve static files from the "public" directory
 app.use(express.static("public"));
 app.use(express.json());
@@ -37,6 +35,7 @@ app.get("/christine", (req, res) => {
 app.get("/nick", (req, res) => {
   res.sendFile(__dirname + "/public/nick");
 });
+
 //NC - Image generation
 
 app.post("/generate-image", async (req, res) => {
@@ -100,6 +99,49 @@ app.get("/api/meal", async (req, res) => {
   } catch (error) {
     console.error("Server error:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/api/openai", async (req, res) => {
+  // Dall-e API
+  const name = req.query.name;
+  const age = req.query.age;
+  const getImageBasedOnAgeAndName = async (name, age) => {
+    const OPENAI_URL = "https://api.openai.com/v1/images/generations";
+    const OPENAI_KEY = process.env.OPENAI_KEY;
+    const prompt = `a photo-realistic person who is ${age} years old called ${name}`;
+
+    console.log("the prompt: ", prompt);
+    try {
+      // Call OpenAI API
+      const response = await axios.post(
+        OPENAI_URL,
+        {
+          model: "dall-e-3",
+          prompt: prompt,
+          n: 1,
+          size: "1024x1024",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${OPENAI_KEY}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const imageUrl = response.data.data[0].url;
+      return imageUrl;
+    } catch (error) {
+      console.error("Error fetching image from OpenAI:", error);
+      throw new Error("Error fetching image");
+    }
+  };
+
+  try {
+    const imageUrl = await getImageBasedOnAgeAndName(name, age);
+    res.json({ imageUrl });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to generate image" });
   }
 });
 
