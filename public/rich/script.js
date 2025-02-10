@@ -23,6 +23,7 @@ document
     const prediction = await getAgeBasedOnName(name);
 
     try {
+      document.getElementById('gettingImage').style.display = 'block'; // Un-hide loading info
       const response = await fetch(
         `http://localhost:3001/api/openai?name=${prediction.name}&age=${prediction.age}`
       );
