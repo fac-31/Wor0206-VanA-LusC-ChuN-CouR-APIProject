@@ -1,1 +1,1 @@
-GET http://localhost:3000/api/openai?name=John&age=90
+GET http://localhost:3000/generate-image

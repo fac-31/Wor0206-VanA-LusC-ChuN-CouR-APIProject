@@ -16,7 +16,7 @@ async function fetchPokemonAbility() {
 
                 document.getElementById('result').textContent = ` ${pokemonName} uses ${firstAbility}!`;
 
-                fetchDogBreed(firstLetter);
+                await fetchDogBreed(pokemonName, firstLetter);
             }
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -25,7 +25,7 @@ async function fetchPokemonAbility() {
     }
 }
 
-async function fetchDogBreed(firstLetter) {
+async function fetchDogBreed(pokemonName, firstLetter) {
     try {
         
         const response = await fetch('https://dog.ceo/api/breeds/list/all');
@@ -44,6 +44,8 @@ async function fetchDogBreed(firstLetter) {
         if (filteredBreeds.length > 0) {
             const randomBreed = filteredBreeds[Math.floor(Math.random() * filteredBreeds.length)];
             document.getElementById('dog-breed').textContent = `A wild ${randomBreed} appears!`;
+
+            await generateImage(pokemonName, randomBreed);
         }
         else {
             document.getElementById('dog-breed').textContent = `No dog breed found for the letter '${firstLetter}'`;
@@ -54,10 +56,31 @@ async function fetchDogBreed(firstLetter) {
     }
 }
 
+async function generateImage(pokemonName, filteredBreed) {
+    try {
 
-
-        document.getElementById('pokemonForm').addEventListener('submit', function(event) {
-            event.preventDefault(); 
-            fetchPokemonAbility();  
-            
+        const response = await fetch('http://localhost:3000/generate-image', { 
+            method: 'POST',  
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pokemonName, filteredBreeds: filteredBreed }),
         });
+
+        const data = await response.json();
+
+        if (data.imageUrl) {
+            console.log(`Image received: ${data.imageUrl}`);
+            document.getElementById('imageWinner').src = data.imageUrl;
+        }
+    } catch (error) {
+    
+        document.getElementById('imageWinner').textContent = 'Error generating image';
+    }
+}
+
+
+
+document.getElementById('pokemonForm').addEventListener('submit', function(event) {
+event.preventDefault(); 
+fetchPokemonAbility();  
+            
+});
