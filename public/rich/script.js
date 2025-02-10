@@ -23,7 +23,10 @@ document
     const prediction = await getAgeBasedOnName(name);
 
     try {
-      document.getElementById('gettingImage').style.display = 'block'; // Un-hide loading info
+      const spinner = document.getElementById('spinner');
+      const loadingText = document.getElementById('gettingImage');
+      loadingText.classList.remove('hidden');
+      spinner.classList.remove('hidden');
       const response = await fetch(
         `http://localhost:3001/api/openai?name=${prediction.name}&age=${prediction.age}`
       );
@@ -35,5 +38,7 @@ document
       aiImage.alt = 'DALL-E generated image of a person';
     } catch (error) {
       console.error('Error fetching AI image:', error);
+    } finally {
+      spinner.style.display = 'none';
     }
   });
