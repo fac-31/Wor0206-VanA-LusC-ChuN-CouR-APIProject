@@ -4,7 +4,9 @@ const app = express();
 const axios = require("axios");
 const cors = require("cors");
 require("dotenv").config();
+
 const { OpenAI } = require('openai');
+
 
 const PORT = process.env.PORT || 3000;
 
@@ -15,10 +17,12 @@ app.use(express.static('public'));
 app.use(express.json());
 app.use(cors()); // allows frontend requests
 
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY, 
 });
 console.log(process.env.OPENAI_API_KEY);
+
 
 // Define a route for the home page
 app.get('/', (req, res) => {
@@ -35,7 +39,6 @@ app.get('/christine', (req, res) => {
 
 app.get('/nick', (req, res) => {
   res.sendFile(__dirname + '/public/nick');
-});
 
 //NC - Image generation 
 
@@ -57,7 +60,6 @@ app.post('/generate-image', async (req, res) => {
       res.status(500).json({ error: 'Error generating image' });
   }
 });
-
 
 app.get('/rich', (req, res) => {
   res.sendFile(__dirname + '/public/rich');

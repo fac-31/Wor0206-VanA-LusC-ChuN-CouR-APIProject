@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+    <meta charset = "UTF-8">
+    <meta name = "viewport" content = "width=device-width, initial-scale=1.0">
+    <title>Hey there!</title>
+</head>
+
+<body>
+    <h1>Get your recipes here!</h1>
+    <img src ="main-image.png">
+    <form id ="contactForm">
+        <label for="name">Search for a meal:</label>
+        <input type="text" id="name" name="name" required><br><br>
+        <button type="button" id="submit">Submit</button>
+    </form>
+
+    <h2 id="meal-name"></h2> 
+    <h3 id="failed-meal"></h3>
+    <img id="meal-image" src="" alt="Meal Image" style="display: none; width: 300px; height: auto;">
+    <h3 id ="failed-image"></h3>
+</body>
+<script src = "script.js"></script>
